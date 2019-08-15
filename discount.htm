@@ -1,0 +1,214 @@
+
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+html{
+	
+}
+body{
+ 
+background: rgb(239,239,239); 
+font-size:1rem;
+ 
+}
+ 
+input{
+	font-size:1rem;
+	width:4rem;
+}
+
+body,a,h3,span{
+ 
+padding:0;
+ 
+margin:0;
+ 
+text-decoration: none;
+ 
+}
+
+.box_top{
+	display :flex;
+	margin: 10px;
+  	justify-content: space-between;
+}
+.box_top1 {
+	display :flex;
+	flex-direction: column;
+  	justify-content: space-between;
+
+}
+.box_middle{
+	margin: 10px;
+}
+.box_bottom{
+	margin: 10px;
+}
+.price_input{
+	margin: 5px;
+}
+.top_input{
+	margin-bottom:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+<form class="myform">
+<div class="box_top">
+	<div class = "box_top_1">
+		<div class="top_input">
+		凑满总价：<input type = "number" id = "total" min="0"/>
+		</div>
+		<div class="top_input">
+		可超范围：<input type = "number" id = "tolerance" min="0"/>
+		</div>
+		<div class="top_input">
+		单品数量上限： <!--<input type = "number" id = "item_max",min="1",value="3"/>-->
+		<select id="item_number_list" >
+		<option value="1">1</option>
+		<option value="2">2</option>
+		<option value="3">3</option>
+		<option value="4">4</option>
+		<option value="1">1</option>
+		<option value="2">2</option>
+		<option value="3">3</option>
+		<option value="4">4</option>
+		<script type="text/javascript">
+			var lst = document.getElementById('item_number_list');
+			var txt = "";
+			for(var i = 1; i<=30; i++)
+			{
+				txt += "<option value='" + i + "'>" + i + "</option>"; 
+			}
+			//alert(txt);
+			txt += "<option value='99999'>99999</option>"
+			lst.innerHTML= txt;
+			
+		</script>
+		</select>
+		</div>
+	</div>
+	<div class="box2">
+		<input type ="button" value = "计算" onclick="calc()"/>
+	</div>
+</div>
+
+<div class="box_middle">
+	商品单价：<input type ="button" value = "添加" onclick="add_item()"/><br/>
+	
+	<div id = "price_list_div">
+		<input type="number" name="price" class = "price_input", min="0"/>
+		<input type="number" name="price" class = "price_input",min="0"/>
+		<input type="number" name="price" class = "price_input",min="0"/>
+	</div>
+
+	</form>
+</div>
+<div class = "box_bottom">
+	凑单方案：
+	<ul id ="output">
+		<li>1</li>
+		<li>2</li>
+	</ul>
+</div>
+	
+
+<script>
+function add_item(){
+	var itm = document.createElement("input");
+	itm.setAttribute("type","number");
+	itm.setAttribute("min","0")
+	itm.setAttribute("name","price");
+	itm.setAttribute("class","price_input");
+	var div = document.getElementById("price_list_div");
+	div.appendChild(itm);
+};
+function check(value,txt)
+{
+
+	if (value==null||value=="" || value <=0)
+	 	 {alert(txt);return false}
+  	else 
+  		{return true}
+  
+}
+
+function calc(){
+	var obj = {};
+	var total = document.getElementById("total");
+	if(check(total.value,"凑满总价必须大于0")==false) {
+		total.focus();
+		return;
+	}
+
+	var tolerance = document.getElementById("tolerance");
+	if(check(tolerance.value,"可超范围必须大于等于0")==false) {
+		tolerance.focus();
+		return;
+	}
+
+	var item_max = document.getElementById("item_number_list");
+	if(check(item_max.value,"单品数量上限有误")==false) {
+		item_max.focus();
+		return;
+	}
+
+
+	var div = document.getElementById("price_list_div")
+	var itms = div.getElementsByTagName("input");
+
+	var price_array = new Array();
+	for (var i =0; i < itms.length; i++)
+	{
+		if(itms[i].value >0){
+			price_array.push(itms[i].value);
+		}
+	}
+	//alert(price_array.join(","));
+
+	obj["total"] = total.value;
+	obj["tolerance"] = tolerance.value;
+	obj["item_max"] = item_max.value;
+	obj["price_array"] = price_array;
+	getmx(obj);
+
+}
+</script>
+
+<script>
+function getmx(obj){
+
+	//alert(JSON.stringify(obj));
+	//var obj = {"total":20, "tolerance":0,"price_array":[2,6,4,5,4,3],"item_max":3};
+
+	var httpRequest = new XMLHttpRequest();
+	httpRequest.open('POST', 'http://caoxiaobo.cn/getmx.php', true);
+
+	httpRequest.setRequestHeader("Content-type","application/json");
+	httpRequest.send(JSON.stringify(obj));
+	
+	httpRequest.onreadystatechange = function () {
+	    if (httpRequest.readyState == 4 && httpRequest.status == 200) {
+	        var json = httpRequest.responseText;
+	        //console.log(json);
+	        rt = JSON.parse(json);
+	        var list_text = "";
+	        for(var i = 0; i<rt.length;i++)
+	        {	
+	        	list_text += "<li>" + rt[i] + "</li>";
+	        }
+	        var ul = document.getElementById("output");
+	        ul.innerHTML = list_text;
+
+	    }
+	}
+}
+</script>
+</body>
+</html>
